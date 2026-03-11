@@ -3,11 +3,11 @@ use rand::prelude::SmallRng;
 use rand::{make_rng, Rng, RngExt, SeedableRng};
 use std::time::SystemTime;
 
-trait IdDataProvider {
+pub trait IdDataProvider {
     fn get_data(&mut self) -> Data;
 }
 
-struct RandomDataProvider<R> {
+pub struct RandomDataProvider<R> {
     rng: R,
 }
 
