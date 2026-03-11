@@ -1,0 +1,8 @@
+[package]
+name = "simple_id"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rand = { version="0.10.0" }
+serbytes = { git = "https://github.com/ltsoveranakin/serbytes.git" }
