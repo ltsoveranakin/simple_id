@@ -1,16 +1,16 @@
-// 0: Header (optional, first bit always 1 delegates it as a header. remaining 7 bits is header data)
-//  With/without header
-// (0)/(1): Increment, First bit is always 0 (distinguish from header) remaining 7 bits represents an incrementing value from the generator
-// (2-3)/(1-2): Time, nanoseconds since unix epoch mod 2^16. When creating a batch of ids, the time may or may not be the same
-// (4-16)/(3-15): Data bytes, should be random
-
 use serbytes::prelude::{
-    from_buf, BBReadResult, ReadByteBufferRefMut, SerBytes, WriteByteBufferOwned,
+    BBReadResult, ReadByteBufferRefMut, SerBytes, WriteByteBufferOwned, from_buf,
 };
 use std::fmt::{Display, Formatter, Write};
 use std::hash::{Hash, Hasher};
 
 pub type Data = [u8; 12];
+
+// 0: Header (optional, first bit always 1 delegates it as a header. remaining 7 bits is header data)
+//  With/without header
+// (0)/(1): Increment, First bit is always 0 (distinguish from header) remaining 7 bits represents an incrementing value from the generator
+// (2-3)/(1-2): Time, nanoseconds since unix epoch mod 2^16. When creating a batch of ids, the time may or may not be the same
+// (4-16)/(3-15): Data bytes, should be random
 
 #[derive(Copy, Clone, Eq, Debug)]
 pub struct Id {
