@@ -168,7 +168,7 @@ impl Default for Id {
 
 const HEX_CHARS: [u8; 16] = *b"0123456789ABCDEF";
 
-fn to_hex_chars(byte: u8) -> [char; 2] {
+pub fn to_hex_chars(byte: u8) -> [char; 2] {
     let char1_index = (byte >> 4) as usize;
     let char2_index = (byte & 0xF) as usize;
 
@@ -178,11 +178,11 @@ fn to_hex_chars(byte: u8) -> [char; 2] {
     [char1 as char, char2 as char]
 }
 
-fn from_hex_char(c: char) -> Option<u8> {
+pub fn from_hex_char(c: char) -> Option<u8> {
     c.to_digit(16).map(|u| u as u8)
 }
 
-fn from_hex_chars([c1, c2]: [char; 2]) -> Option<u8> {
+pub fn from_hex_chars([c1, c2]: [char; 2]) -> Option<u8> {
     Some((from_hex_char(c1)? << 4) | from_hex_char(c2)?)
 }
 
