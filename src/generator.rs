@@ -1,6 +1,6 @@
 use crate::id::{Data, Id};
 use rand::prelude::SmallRng;
-use rand::{make_rng, Rng, RngExt, SeedableRng};
+use rand::{Rng, RngExt, SeedableRng, make_rng};
 use std::time::SystemTime;
 
 pub trait IdDataProvider {
@@ -8,7 +8,7 @@ pub trait IdDataProvider {
 }
 
 pub struct RandomDataProvider<R> {
-    rng: R,
+    pub rng: R,
 }
 
 impl<R> IdDataProvider for RandomDataProvider<R>
@@ -24,13 +24,7 @@ impl<R> RandomDataProvider<R>
 where
     R: SeedableRng,
 {
-    fn new_seeded(seed: u64) -> Self {
-        Self {
-            rng: R::seed_from_u64(seed),
-        }
-    }
-
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self { rng: make_rng() }
     }
 }
@@ -64,7 +58,7 @@ where
             .unwrap()
             .as_nanos()
             % MAX_TIME) as u16;
-        let data = self.provider.random();
+        let data = self.provider.get_data();
 
         self.increment += 1;
         self.increment = self.increment % 0x80;
