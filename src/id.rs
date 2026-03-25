@@ -1,16 +1,13 @@
+use std::fmt::{Display, Formatter, Write};
+use std::hash::{Hash, Hasher};
+
+pub type Data = [u8; 12];
+
 // 0: Header (optional, first bit always 1 delegates it as a header. remaining 7 bits is header data)
 //  With/without header
 // (0)/(1): Increment, First bit is always 0 (distinguish from header) remaining 7 bits represents an incrementing value from the generator
 // (2-3)/(1-2): Time, nanoseconds since unix epoch mod 2^16. When creating a batch of ids, the time may or may not be the same
 // (4-16)/(3-15): Data bytes, should be random
-
-use serbytes::prelude::{
-    from_buf, BBReadResult, ReadByteBufferRefMut, SerBytes, WriteByteBufferOwned,
-};
-use std::fmt::{Display, Formatter, Write};
-use std::hash::{Hash, Hasher};
-
-pub type Data = [u8; 12];
 
 #[derive(Copy, Clone, Eq, Debug)]
 pub struct Id {
@@ -113,50 +110,6 @@ impl Id {
 
     pub fn is_header(byte: u8) -> bool {
         byte >> 7 == 0b00000001
-    }
-}
-
-impl SerBytes for Id {
-    fn from_buf(buf: &mut ReadByteBufferRefMut) -> BBReadResult<Self>
-    where
-        Self: Sized,
-    {
-        let maybe_header = u8::from_buf(buf)?;
-
-        let header;
-        let increment;
-
-        if Id::is_header(maybe_header) {
-            header = maybe_header;
-            increment = u8::from_buf(buf)?;
-        } else {
-            header = 0b00000000;
-            increment = maybe_header;
-        }
-
-        let time = from_buf(buf)?;
-
-        let data = buf
-            .read_bytes(12)?
-            .try_into()
-            .expect("Read 12 bytes from the buffer, can't fail");
-
-        Ok(Self {
-            header,
-            increment,
-            time,
-            data,
-        })
-    }
-
-    fn to_buf(&self, buf: &mut WriteByteBufferOwned) {
-        if self.has_header() {
-            self.header.to_buf(buf);
-        }
-
-        self.increment.to_buf(buf);
-        self.time.to_buf(buf);
-        buf.write_bytes(&self.data);
     }
 }
 
