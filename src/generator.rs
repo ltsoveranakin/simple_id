@@ -1,6 +1,6 @@
 use crate::id::{Data, Id};
 use rand::prelude::SmallRng;
-use rand::{Rng, RngExt, SeedableRng, make_rng};
+use rand::{make_rng, Rng, RngExt, SeedableRng};
 use std::time::SystemTime;
 
 pub trait IdDataProvider {
@@ -20,11 +20,11 @@ where
     }
 }
 
-impl<R> RandomDataProvider<R>
+impl<R> Default for RandomDataProvider<R>
 where
     R: SeedableRng,
 {
-    pub fn new() -> Self {
+    fn default() -> Self {
         Self { rng: make_rng() }
     }
 }
@@ -74,5 +74,14 @@ where
             time,
             data,
         }
+    }
+}
+
+impl<DP> Default for IdGenerator<DP>
+where
+    DP: Default,
+{
+    fn default() -> Self {
+        Self::new(DP::default())
     }
 }
