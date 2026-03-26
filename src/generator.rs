@@ -1,6 +1,6 @@
 use crate::id::{Data, Id};
 use rand::prelude::SmallRng;
-use rand::{make_rng, Rng, RngExt, SeedableRng};
+use rand::{Rng, RngExt, SeedableRng, make_rng};
 use std::time::SystemTime;
 
 pub trait IdDataProvider {
@@ -79,7 +79,7 @@ where
 
 impl<DP> Default for IdGenerator<DP>
 where
-    DP: Default,
+    DP: Default + IdDataProvider,
 {
     fn default() -> Self {
         Self::new(DP::default())
