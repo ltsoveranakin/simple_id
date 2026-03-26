@@ -1,3 +1,4 @@
+use crate::id::Id;
 use serbytes::prelude::{BBReadResult, ReadByteBufferRefMut, SerBytes, WriteByteBufferOwned};
 
 impl SerBytes for Id {
