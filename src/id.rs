@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter, Write};
 use std::hash::{Hash, Hasher};
+use std::str::FromStr;
 
 pub type Data = [u8; 12];
 
@@ -64,50 +65,6 @@ impl Id {
         out
     }
 
-    // TODO: make function to combine this and serbytes impl?
-    pub fn try_from_str(s: &str) -> Option<Self> {
-        let no_hyphens: Vec<char> = s.chars().filter(|c| *c != '-').collect();
-
-        if no_hyphens.len() != Self::BYTE_LEN_WITHOUT_HEADER * 2
-            && no_hyphens.len() != Self::BYTE_LEN_WITH_HEADER * 2
-        {
-            return None;
-        }
-
-        let mut chunks = no_hyphens.as_chunks::<2>().0.into_iter();
-
-        let header;
-        let increment;
-
-        let maybe_header = from_hex_chars(*chunks.next()?)?;
-
-        if Self::is_header(maybe_header) {
-            header = maybe_header;
-            increment = from_hex_chars(*chunks.next()?)?;
-        } else {
-            header = 0b00000000;
-            increment = maybe_header;
-        }
-
-        let time_hi = from_hex_chars(*chunks.next()?)? as u16;
-        let time_low = from_hex_chars(*chunks.next()?)? as u16;
-
-        let time = (time_hi << 8) | time_low;
-
-        let mut data = [0; 12];
-
-        for (i, &chunk) in chunks.enumerate() {
-            data[i] = from_hex_chars(chunk)?;
-        }
-
-        Some(Self {
-            header,
-            increment,
-            time,
-            data,
-        })
-    }
-
     pub fn is_header(byte: u8) -> bool {
         byte >> 7 == 0b00000001
     }
@@ -131,12 +88,67 @@ fn to_hex_chars(byte: u8) -> [char; 2] {
     [char1 as char, char2 as char]
 }
 
-fn from_hex_char(c: char) -> Option<u8> {
-    c.to_digit(16).map(|u| u as u8)
+fn from_hex_char(c: char) -> Result<u8, ParseErr> {
+    c.to_digit(16)
+        .map(|u| u as u8)
+        .ok_or(ParseErr::InvalidHexChar)
 }
 
-fn from_hex_chars([c1, c2]: [char; 2]) -> Option<u8> {
-    Some((from_hex_char(c1)? << 4) | from_hex_char(c2)?)
+fn from_hex_chars([c1, c2]: [char; 2]) -> Result<u8, ParseErr> {
+    Ok((from_hex_char(c1)? << 4) | from_hex_char(c2)?)
+}
+
+pub enum ParseErr {
+    InvalidLength,
+    InvalidHexChar,
+}
+
+impl FromStr for Id {
+    type Err = ParseErr;
+
+    // TODO: make function to combine this and serbytes impl?
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let no_hyphens: Vec<char> = s.chars().filter(|c| *c != '-').collect();
+
+        if no_hyphens.len() != Self::BYTE_LEN_WITHOUT_HEADER * 2
+            && no_hyphens.len() != Self::BYTE_LEN_WITH_HEADER * 2
+        {
+            return Err(ParseErr::InvalidLength);
+        }
+
+        let mut chunks = no_hyphens.as_chunks::<2>().0.into_iter();
+
+        let header;
+        let increment;
+
+        let maybe_header = from_hex_chars(*chunks.next().expect("Checked string length above"))?;
+
+        if Self::is_header(maybe_header) {
+            header = maybe_header;
+            increment = from_hex_chars(*chunks.next().expect("Checked string length above"))?;
+        } else {
+            header = 0b00000000;
+            increment = maybe_header;
+        }
+
+        let time_hi = from_hex_chars(*chunks.next().expect("Checked string length above"))? as u16;
+        let time_low = from_hex_chars(*chunks.next().expect("Checked string length above"))? as u16;
+
+        let time = (time_hi << 8) | time_low;
+
+        let mut data = [0; 12];
+
+        for (i, &chunk) in chunks.enumerate() {
+            data[i] = from_hex_chars(chunk)?;
+        }
+
+        Ok(Self {
+            header,
+            increment,
+            time,
+            data,
+        })
+    }
 }
 
 impl Display for Id {

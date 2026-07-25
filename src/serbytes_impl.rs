@@ -45,4 +45,23 @@ impl SerBytes for Id {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::prelude::*;
+    use serbytes::prelude::*;
+
+    #[test]
+    fn test_serbytes() {
+        let mut buf = WriteByteBufferOwned::new();
+
+        let id = SmallRngIdGenerator::default().generate_new_id();
+
+        id.to_buf(&mut buf);
+
+        let mut rbb = ReadByteBufferOwned::from_vec(buf.into_vec());
+        let deser_id = Id::from_buf(&mut rbb.rbb_ref_mut()).expect("Deserialize id");
+
+        assert_eq!(id, deser_id);
+    }
+}
 // not static sized
